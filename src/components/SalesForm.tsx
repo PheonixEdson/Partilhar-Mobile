@@ -1,0 +1,14 @@
+import React, {useState, useMemo, useRef, useEffect} from "react";
+import { View, KeyboardAvoidingView, Platform, StyleSheet, FlatList, TouchableOpacity, Animated } from "react-native";
+import { TextInput, Button, Card, List } from "react-native-paper";
+import { v4 as uuidv4 } from "uuid";
+export default function SalesForm({ products, onSubmit, onCancel }: any) {
+  const [query, setQuery] = useState(""); const [selectedId, setSelectedId] = useState(products[0]?.id || ""); const [quantity, setQuantity] = useState("1"); const fadeAnim = useRef(new Animated.Value(0)).current;
+  useEffect(()=>{ Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start(); }, []);
+  const filtered = useMemo(() => { const q = query.trim().toLowerCase(); if (!q) return products; return products.filter(p => (p.name || "").toLowerCase().includes(q)); }, [query, products]);
+  const selectedProduct = useMemo(() => products.find(p => p.id === selectedId) || filtered[0] || null, [selectedId, products, filtered]);
+  const qtyNumber = Number(quantity) || 0; const total = (selectedProduct?.price || 0) * qtyNumber;
+  const handleSubmit = () => { if (!selectedProduct) return; if (qtyNumber <= 0) return; const s = { id: uuidv4(), productId: selectedProduct.id, quantity: qtyNumber, total, date: new Date().toISOString() }; onSubmit(s); };
+  return (<KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.container}><Animated.View style={{opacity: fadeAnim}}><TextInput label="Buscar produto" value={query} onChangeText={setQuery} style={styles.input} mode="outlined" /><FlatList data={filtered} keyExtractor={item => item.id} style={{maxHeight:200, marginBottom:12}} renderItem={({item}) => (<TouchableOpacity onPress={()=>{ setSelectedId(item.id); setQuery(item.name); }}><Card style={[styles.card, selectedId === item.id ? styles.cardSelected : null]}><Card.Content><List.Item title={item.name} description={`R$ ${item.price.toFixed(2)} — Qtd: ${item.quantity ?? 0}`} /></Card.Content></Card></TouchableOpacity>)} /><TextInput label="Quantidade" value={quantity} onChangeText={setQuantity} keyboardType="numeric" style={styles.input} mode="outlined" /><List.Item title="Total" description={`R$ ${total.toFixed(2)}`} /><Button mode="contained" onPress={handleSubmit} style={{marginTop:12}}>Registrar venda</Button><Button mode="outlined" onPress={onCancel} style={{marginTop:8}}>Cancelar</Button></Animated.View></KeyboardAvoidingView>);
+}
+const styles = StyleSheet.create({ container: { flex:1, padding:8 }, input: { marginBottom:12 }, card: { marginBottom:8 }, cardSelected: { borderWidth:1, borderColor:"#6200ee" } });
