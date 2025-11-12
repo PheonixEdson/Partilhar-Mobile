@@ -1,7 +1,5 @@
 # Partilhar — Mobile (React Native + Expo)
 
-Projeto convertido para mobile, nome mantido: **Partilhar**.
-
 ## Como rodar
 
 ```bash
